@@ -1,0 +1,9 @@
+[package]
+name = "apiserver"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+multidustrycore = {path = "../multidustrycore"}
+tokio = { version = "1.47.1", features = ["full"] }
+

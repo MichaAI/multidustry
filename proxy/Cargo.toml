@@ -1,0 +1,10 @@
+[package]
+name = "proxy"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+multidustrycore = { path = "../multidustrycore"}
+tokio = { version = "1.47.1", features = ["full"] }
+num_cpus = "1.16"
+bytes = "1.10"

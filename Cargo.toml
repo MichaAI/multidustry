@@ -1,0 +1,3 @@
+[workspace]
+members = ["multidustrycore", "apiserver", "proxy", "gameserver", "monolith", "cli"]
+resolver = "3"

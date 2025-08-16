@@ -1,0 +1,11 @@
+[package]
+name = "monolith"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+apiserver = {path = "../apiserver"}
+proxy = {path = "../proxy"}
+gameserver = {path="../gameserver"}
+multidustrycore = {path="../multidustrycore"}
+tokio = { version = "1.47.1", features = ["full"] }
