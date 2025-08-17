@@ -1,0 +1,8 @@
+package multidustry:worldplugin;
+
+use multidustry:logging/logging;
+
+/// An example world for the component to target.
+world worldplugin {
+    import logging
+}
