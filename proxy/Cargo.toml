@@ -8,3 +8,4 @@ multidustrycore = { path = "../multidustrycore"}
 tokio = { version = "1.47.1", features = ["full"] }
 num_cpus = "1.16"
 bytes = "1.10"
+uuid = { version = "1.18.0", features = ["v4"] }

@@ -4,18 +4,17 @@ use dashmap::DashMap;
 use once_cell::sync::Lazy;
 use thiserror::Error;
 
-pub static LOCAL_MAP: once_cell::sync::Lazy<
-    Arc<DashMap<Component, tokio::sync::mpsc::Sender<Vec<u8>>>>,
-> = Lazy::new(|| Arc::new(DashMap::new()));
+pub static MAP: once_cell::sync::Lazy<Arc<DashMap<Component, tokio::sync::mpsc::Sender<Vec<u8>>>>> =
+    Lazy::new(|| Arc::new(DashMap::new()));
 
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub struct Component {
     pub component_type: ComponentType,
     pub component_name: String,
 }
 
 #[allow(dead_code)]
-#[derive(PartialEq, Eq, PartialOrd, Ord, Hash)]
+#[derive(PartialEq, Eq, PartialOrd, Ord, Hash, Debug)]
 pub enum ComponentType {
     Apiserver,
     Proxy,
@@ -27,7 +26,7 @@ pub fn register_service(
     component: Component,
     sender: tokio::sync::mpsc::Sender<Vec<u8>>,
 ) -> Result<(), Box<dyn std::error::Error>> {
-    LOCAL_MAP.insert(component, sender);
+    MAP.insert(component, sender);
     Ok(())
 }
 
@@ -41,7 +40,7 @@ pub async fn send_message_no_name(
     component_type: ComponentType,
     data: Vec<u8>,
 ) -> Result<(), RegistryError> {
-    let tx = LOCAL_MAP
+    let tx = MAP
         .iter()
         .find(|x| x.key().component_type == component_type)
         .map(|x| x.value().clone());

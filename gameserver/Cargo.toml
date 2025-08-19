@@ -6,3 +6,4 @@ edition = "2024"
 [dependencies]
 multidustrycore = { path = "../multidustrycore"}
 tokio = { version = "1.47.1", features = ["full"] }
+uuid = { version = "1.18.0", features = ["v4"] }

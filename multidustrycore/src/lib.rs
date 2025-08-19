@@ -1,3 +1,2 @@
-mod registry;
-
+pub mod registry;
 pub use tokio;
