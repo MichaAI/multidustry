@@ -1,3 +1,11 @@
 [workspace]
-members = ["multidustrycore", "apiserver", "proxy", "gameserver", "monolith", "cli", "shared"]
+members = [
+    "multidustrycore",
+    "apiserver",
+    "proxy",
+    "gameserver",
+    "monolith",
+    "cli",
+    "crates/seqbin", "crates/seqbin_derive", "crates/seqbin_test",
+]
 resolver = "3"
