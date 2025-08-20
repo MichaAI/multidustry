@@ -26,14 +26,14 @@ macro_rules! impl_seqbin_int {
         impl SeqBin for $t {
             fn write_to<W: Write>(&self, writer: &mut W) -> Result<(), SeqBinError> {
                 writer
-                    .write_all(&self.to_le_bytes())
+                    .write_all(&self.to_be_bytes())
                     .map_err(SeqBinError::from)
             }
 
             fn read_from<R: Read>(reader: &mut R) -> Result<Self, SeqBinError> {
                 let mut buf = [0u8; std::mem::size_of::<$t>()];
                 reader.read_exact(&mut buf).map_err(SeqBinError::from)?;
-                Ok(<$t>::from_le_bytes(buf))
+                Ok(<$t>::from_be_bytes(buf))
             }
         }
     };
