@@ -6,6 +6,5 @@ members = [
     "gameserver",
     "monolith",
     "cli",
-    "crates/seqbin", "crates/seqbin_derive", "crates/seqbin_test",
 ]
 resolver = "3"
