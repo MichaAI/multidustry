@@ -1,6 +1,13 @@
-use tokio::{self, net::UdpSocket, sync::{mpsc::{Receiver, Sender}, OnceCell}};
-use bytes::{BufMut, Bytes, BytesMut};
 use bytes::Buf;
+use bytes::{BufMut, Bytes, BytesMut};
+use tokio::{
+    self,
+    net::UdpSocket,
+    sync::{
+        OnceCell,
+        mpsc::{Receiver, Sender},
+    },
+};
 
 #[derive(Debug)]
 pub struct UdpPacket {
@@ -10,9 +17,9 @@ pub struct UdpPacket {
 
 static SOCKET: OnceCell<UdpSocket> = OnceCell::const_new();
 async fn get_socket() -> &'static UdpSocket {
-    SOCKET.get_or_init(|| async {
-        UdpSocket::bind("0.0.0.0:6567").await.unwrap()
-    }).await
+    SOCKET
+        .get_or_init(|| async { UdpSocket::bind("0.0.0.0:6567").await.unwrap() })
+        .await
 }
 pub async fn handle_udp_conections() {
     let cpu_count = num_cpus::get();
@@ -29,7 +36,6 @@ pub async fn handle_udp_conections() {
     tokio::spawn(async move {
         master_udp(worker_senders).await;
     });
-    
 }
 
 async fn master_udp(senders: Vec<Sender<UdpPacket>>) {
@@ -40,7 +46,12 @@ async fn master_udp(senders: Vec<Sender<UdpPacket>>) {
         match socket.recv_from(&mut buf).await {
             Ok((_, addr)) => {
                 let sender = &senders[rr_index];
-                let _ = sender.send(UdpPacket { data: buf, addr: addr }).await;
+                let _ = sender
+                    .send(UdpPacket {
+                        data: buf,
+                        addr: addr,
+                    })
+                    .await;
                 rr_index = (rr_index + 1) % senders.len();
             }
             Err(_) => {}
@@ -57,7 +68,9 @@ async fn worker_udp(mut receiver: Receiver<UdpPacket>) {
 async fn process_udp_packet(packet: UdpPacket) {
     let socket = get_socket().await;
     let mut data = &packet.data[..];
-    if data.len() < 1 {return;}
+    if data.len() < 1 {
+        return;
+    }
     let first_byte = data.get_i8();
     if first_byte == -2 {
         let mut buf = BytesMut::new();
@@ -81,7 +94,6 @@ fn constuct_discovery_responce(buf: &mut BytesMut) -> Bytes {
     write_string(buf, "HUB", 64); // Custom gamemode
     buf.put_i16(6567); // Server port
 
-    
     buf.clone().freeze()
 }
 
