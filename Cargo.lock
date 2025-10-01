@@ -814,6 +814,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "kanal"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9e3953adf0cd667798b396c2fa13552d6d9b3269d7dd1154c4c416442d1ff574"
+dependencies = [
+ "futures-core",
+ "lock_api",
+]
+
+[[package]]
 name = "lazy_static"
 version = "1.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1268,6 +1278,7 @@ version = "0.1.0"
 dependencies = [
  "bincode",
  "bytes",
+ "kanal",
  "lz4_flex",
  "multidustrycore",
  "num_cpus",
@@ -1305,6 +1316,10 @@ dependencies = [
  "pprof2",
  "pyroscope",
 ]
+
+[[package]]
+name = "quic"
+version = "0.1.0"
 
 [[package]]
 name = "quinn"
@@ -1375,6 +1390,10 @@ name = "r-efi"
 version = "5.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "69cdb34c158ceb288df11e18b4bd39de994f6657d83847bdffdbd7f346754b0f"
+
+[[package]]
+name = "raft"
+version = "0.1.0"
 
 [[package]]
 name = "rand"

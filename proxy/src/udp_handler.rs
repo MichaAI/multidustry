@@ -1,13 +1,7 @@
 use bytes::Buf;
 use bytes::{BufMut, Bytes, BytesMut};
-use tokio::{
-    self,
-    net::UdpSocket,
-    sync::{
-        OnceCell,
-        mpsc::{Receiver, Sender},
-    },
-};
+use kanal::*;
+use tokio::{self, net::UdpSocket, sync::OnceCell};
 
 #[derive(Debug)]
 pub struct UdpPacket {
@@ -23,44 +17,42 @@ async fn get_socket() -> &'static UdpSocket {
 }
 pub async fn handle_udp_conections() {
     let cpu_count = num_cpus::get();
-    let mut worker_senders = Vec::new();
+    let (tx, rx) = bounded_async(100);
 
     for _ in 0..cpu_count {
-        let (tx, mut rx) = tokio::sync::mpsc::channel::<UdpPacket>(100);
-        worker_senders.push(tx);
+        let rx = rx.clone();
         tokio::spawn(async move {
             worker_udp(rx).await;
         });
     }
 
     tokio::spawn(async move {
-        master_udp(worker_senders).await;
+        master_udp(tx).await;
     });
 }
 
-async fn master_udp(senders: Vec<Sender<UdpPacket>>) {
+async fn master_udp(sender: AsyncSender<UdpPacket>) {
     let socket = get_socket().await;
-    let mut rr_index = 0;
     loop {
         let mut buf = vec![0u8; 1024];
         match socket.recv_from(&mut buf).await {
             Ok((_, addr)) => {
-                let sender = &senders[rr_index];
                 let _ = sender
                     .send(UdpPacket {
                         data: buf,
                         addr: addr,
                     })
                     .await;
-                rr_index = (rr_index + 1) % senders.len();
             }
-            Err(_) => {}
+            Err(e) => {
+                eprintln!("Failed to recive from socket: {:?}", e);
+            }
         }
     }
 }
 
-async fn worker_udp(mut receiver: Receiver<UdpPacket>) {
-    while let Some(packet) = receiver.recv().await {
+async fn worker_udp(receiver: AsyncReceiver<UdpPacket>) {
+    while let Ok(packet) = receiver.recv().await {
         process_udp_packet(packet).await;
     }
 }
