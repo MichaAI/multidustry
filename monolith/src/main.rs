@@ -1,10 +1,12 @@
 use apiserver::apiserver_main;
 use gameserver::gameserver_main;
-use tokio;
+use multidustrycore::observ::init_observ;
 use proxy::proxy_main;
+use tokio;
 
 #[tokio::main]
 async fn main() {
+    let _ = init_observ();
     let apiserver = tokio::spawn(async {
         apiserver_main().await;
     });
