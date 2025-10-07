@@ -78,7 +78,7 @@ fn constuct_discovery_responce(buf: &mut BytesMut) -> Bytes {
     write_string(buf, "HUB", 100); // Map name
     buf.put_i32(0); // Total players
     buf.put_i32(0); // Wave
-    buf.put_i32(146); // Version number
+    buf.put_i32(-1); // Version number
     write_string(buf, "multidustry", 64); // Version type
     buf.put_i8(1); // Gamemode
     buf.put_i32(255); // Player limit

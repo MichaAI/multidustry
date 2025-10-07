@@ -4,6 +4,7 @@ use multidustrycore::registry::{self, Component, ComponentType};
 use tokio::{self, sync::mpsc};
 
 mod packet;
+mod protocol;
 mod udp_handler;
 
 pub async fn proxy_main() {
