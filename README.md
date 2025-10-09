@@ -6,7 +6,7 @@
 
 > **Alternative Mindustry server implementation focused on horizontal scalability and plugin ecosystem**
 
-Multidustry is a next-generation server implementation for [Mindustry](https://mindustry.io/) written in Rust. Unlike the original Java server that handles one world per instance and scales only vertically, Multidustry runs multiple worlds simultaneously with true horizontal scaling capabilities.
+Multidustry is a next-generation server implementation for [Mindustry](https://github.com/Anuken/Mindustry) written in Rust. Unlike the original Java server that handles one world per instance and scales only vertically, Multidustry runs multiple worlds simultaneously with true horizontal scaling capabilities.
 
 ## 🌟 Key Features
 
@@ -43,26 +43,81 @@ Multidustry consists of three horizontally-scalable components communicating via
 - Non-blocking queues for inter-thread communication
 - World state snapshotting every 5 minutes
 
-```
-┌─────────────────────────────────────────┐
-│         Players (TCP/UDP)               │
-└──────────────┬──────────────────────────┘
-               │
-     ┌─────────▼─────────┐
-     │      Proxy        │  QUIC+CBOR
-     │   (Load Balancer) │◄────────────┐
-     └─────────┬─────────┘             │
-               │                       │
-        ┌──────▼──────────┐      ┌─────┴─────┐
-        │   Apiserver     │◄────►│ Gameserver│
-        │  (Raft Cluster) │      │ (Workers) │
-        └─────────────────┘      └───────────┘
-               │
-        ┌──────▼──────────┐
-        │  Storage Plugin │
-        │     MongoDB     │
-        └─────────────────┘
-```
+```mermaid
+
+flowchart TD
+	style A color:#000000,fill:#D9D9D9
+	subgraph s1["Proxy"]
+		n3@{ label: "Rectangle" }
+		n2["Proxy plugin"]
+		n1
+	end
+	n1["TCP/UDP original protocol handler"]
+	n1 ---> |"kanal async"| n2
+	n2 ---> |"kanal async"| n1
+	n1
+	n2 ---|"kanal async"| n3["QUIC/CBOR internal transport"]
+	n3 ---|"kanal async"| n2["Proxy plugins"]
+	subgraph s2["Apiserver"]
+		n4["Raft based orcestration"]
+	end
+	subgraph s3["Consul"]
+		n16["kv-store"]
+		n5["service discovery"]
+	end
+	s1 ---|"http"| n5
+	s2 ---|"http"| n5
+	subgraph s4["Gameserver 1"]
+		n9["QUIC/CBOR internal transport"]
+		n8["Tokio async part"]
+		n7["world2"]
+		n6["world1"]
+	end
+	n1 ---|"tcp/udp"| A
+	A["Players"] ---|"tcp/udp"| n1
+	n1
+	n1
+	n1
+	n8 --- n6
+	n6 --- n8
+	n8 --- n7
+	n7 --- n8
+	n9 --- n8
+	n8 --- n9
+	n3 ---|"QUIC/CBOR"| n9
+	s4 ---|"http"| n5
+	subgraph s5["Gameserver 2"]
+		n13["QUIC/CBOR internal transport"]
+		n12["world4"]
+		n11["world3"]
+		n10["Tokio async part"]
+	end
+	n10
+	n11
+	n10 ---|"kanal"| n12
+	n12 ---|"kanal"| n10
+	n11
+	n10
+	n13 ---|"kanal async"| n10
+	n10 ---|"kanal async"| n13
+	n3 ---|"QUIC/CBOR"| n13
+	n13 ---|"QUIC/CBOR"| n3
+	n9 ---|"QUIC/CBOR"| n3
+	subgraph n11["world3"]
+			n15["WorldPlugin1"]
+		n14["simulation core"]
+	end
+	n10 ---|"kanal"| n14
+	n14 ---|"kanal"| n10
+	n14 ---|"wasm call"| n15
+	n15 ---|"wasm call"| n14
+	n4
+	n4["Raft based orcestration<br><br>Оркестрирует миры, не игроков"]
+	s5 ---|"http"| n16
+	n15
+	n16
+	s2 --- n16
+	s1 ---|"http"| n16```
 
 ## 🔌 Plugin System
 
@@ -112,10 +167,7 @@ type = "world-plugin"
 entrypoint = "plugin.wasm"
 
 [dependencies]
-economy-api = "^2.0"
-
-[permissions]
-required = ["storage.read", "storage.write"]
+postgresql = "1.0.1"
 ```
 
 Package as `.zip` with WASM, manifest, assets, and checksums for verification.
@@ -164,7 +216,7 @@ spec:
   storage:
     - name: mongodb
       plugin:
-        url: "https://github.com/.../mongodb-storage.wasm"
+        url: "https://github.com/.../mongodb-storage.zip"
 ```
 
 ## 🛠️ Technology Stack
@@ -244,7 +296,7 @@ multidustry/
 ├── gameserver/     - World simulation
 ├── monolith/       - Single-process mode
 ├── multidustrycore/ - Shared utilities
-├── cli/            - Command-line interface
+├── multidustrycli/ - Command-line interface
 ├── labs/           - Experimental prototypes
 │   ├── quic/       - QUIC experiments
 │   └── raft/       - Raft experiments
@@ -279,7 +331,7 @@ Licensed under Apache License 2.0 - see [LICENSE](LICENSE) for details.
 
 **Status**: 🚧 Active Development - Not production ready yet
 
-**Author**: MichaAI, Kowkodivka
+**Author**: MichaAI
 
 **Made with** 🦀 **and** 💙
 ```
