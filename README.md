@@ -125,7 +125,7 @@ flowchart TD
 Four types of plugins, all WASM-based with WIT interfaces:
 
 **World Plugins** - Attached to specific worlds, provide gameplay mechanics
-```
+```rust
 async fn on_player_join(&mut self, player_id: &str) {
     let player = self.storage.get_document("players", player_id).await?;
     // Custom game logic
@@ -154,7 +154,7 @@ async fn on_player_join(&mut self, player_id: &str) {
 
 ### Plugin Package Format
 
-```
+```toml
 # manifest.toml
 [package]
 name = "my-plugin"
@@ -177,7 +177,7 @@ Package as `.zip` with WASM, manifest, assets, and checksums for verification.
 
 ### Monolith Mode (Single Server)
 
-```
+```bash
 # Run all components in one process
 multidustry --mode monolith \
   --config config.toml \
@@ -186,7 +186,7 @@ multidustry --mode monolith \
 
 ### Distributed Mode (Cluster)
 
-```
+```bash
 # Apiserver (3 replicas for Raft quorum)
 multidustry apiserver --peers node1,node2,node3
 
@@ -199,7 +199,7 @@ multidustry gameserver --apiserver http://apiserver:8080
 
 ### Kubernetes Deployment
 
-```
+```yaml
 apiVersion: neodustry.ru/multidustry/v1
 kind: MultidustryCluster
 metadata:
@@ -281,7 +281,7 @@ Contributions are welcome! Please read [CONTRIBUTING.md](CONTRIBUTING.md) for gu
 
 ### Development Setup
 
-```
+```bash
 git clone https://github.com/MichaAI/multidustry
 cd multidustry
 cargo build
@@ -290,7 +290,7 @@ cargo test
 
 ### Project Structure
 
-```
+```tree
 multidustry/
 ├── apiserver/      - Control plane
 ├── proxy/          - Protocol gateway
@@ -335,5 +335,3 @@ Licensed under Apache License 2.0 - see [LICENSE](LICENSE) for details.
 **Author**: MichaAI
 
 **Made with** 🦀 **and** 💙
-```
-
