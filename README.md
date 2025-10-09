@@ -117,7 +117,8 @@ flowchart TD
 	n15
 	n16
 	s2 --- n16
-	s1 ---|"http"| n16```
+	s1 ---|"http"| n16
+```
 
 ## 🔌 Plugin System
 
