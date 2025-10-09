@@ -10,7 +10,7 @@ pub struct UdpPacket {
 }
 
 static SOCKET: OnceCell<UdpSocket> = OnceCell::const_new();
-async fn get_socket() -> &'static UdpSocket {
+async fn get_udp_socket() -> &'static UdpSocket {
     SOCKET
         .get_or_init(|| async { UdpSocket::bind("0.0.0.0:6567").await.unwrap() })
         .await
@@ -32,7 +32,7 @@ pub async fn handle_udp_conections() {
 }
 
 async fn master_udp(sender: AsyncSender<UdpPacket>) {
-    let socket = get_socket().await;
+    let socket = get_udp_socket().await;
     loop {
         let mut buf = vec![0u8; 1024];
         match socket.recv_from(&mut buf).await {
@@ -58,7 +58,7 @@ async fn worker_udp(receiver: AsyncReceiver<UdpPacket>) {
 }
 
 async fn process_udp_packet(packet: UdpPacket) {
-    let socket = get_socket().await;
+    let socket = get_udp_socket().await;
     let mut data = &packet.data[..];
     if data.len() < 1 {
         return;

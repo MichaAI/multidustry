@@ -5,6 +5,7 @@ use tokio::{self, sync::mpsc};
 
 mod packet;
 mod protocol;
+mod tcp_handler;
 mod udp_handler;
 
 pub async fn proxy_main() {
