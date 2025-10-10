@@ -1,12 +1,12 @@
 use std::{
-    any::{Any, TypeId},
+    any::Any,
     marker::PhantomData,
     sync::{Arc, OnceLock},
 };
 
 use async_trait::async_trait;
 use dashmap::DashMap;
-use kanal::SendError as KanalSendError;
+use kanal::{ReceiveError, SendError as KanalSendError};
 use serde::{Serialize, de::DeserializeOwned};
 use thiserror::Error;
 use uuid::Uuid;
@@ -19,9 +19,7 @@ pub fn get_local_registry() -> &'static DashMap<Uuid, Arc<dyn DynEndpoint + 'sta
     LOCAL_REGISTRY.get_or_init(|| DashMap::new())
 }
 
-pub trait Needed: Send + Serialize + DeserializeOwned + Reflectionable {}
-
-pub trait Reflectionable {
+pub trait Reflectionable: Send + Serialize + DeserializeOwned {
     fn stable_type_hash() -> &'static str;
 }
 
@@ -36,18 +34,18 @@ trait DynEndpoint: Send + Sync {
 }
 
 #[derive(Clone)]
-pub struct TypedTx<Req: 'static + Send> {
+pub struct TypedTx<Req: Send> {
     inner: Arc<dyn DynEndpoint>,
     _pd: PhantomData<Req>,
 }
 
 #[derive(Clone)]
-pub struct TypedRx<Res: 'static + Send> {
+pub struct TypedRx<Res: Send> {
     inner: Arc<dyn DynEndpoint>,
     _pd: PhantomData<Res>,
 }
 
-impl<Req: 'static + Needed> TypedTx<Req> {
+impl<Req: 'static + Reflectionable> TypedTx<Req> {
     pub fn new(inner: Arc<dyn DynEndpoint>) -> Result<Self, TypeMismatchError> {
         if inner.req_type() != Req::stable_type_hash() {
             return Err(TypeMismatchError);
@@ -63,7 +61,7 @@ impl<Req: 'static + Needed> TypedTx<Req> {
     // опционально: pub async fn close(&self) { ... }
 }
 
-impl<Res: 'static + Needed> TypedRx<Res> {
+impl<Res: 'static + Reflectionable> TypedRx<Res> {
     pub fn new(inner: Arc<dyn DynEndpoint>) -> Result<Self, TypeMismatchError> {
         if inner.res_type() != Res::stable_type_hash() {
             return Err(TypeMismatchError);
@@ -78,6 +76,38 @@ impl<Res: 'static + Needed> TypedRx<Res> {
         any.downcast::<Res>()
             .map(|b| *b)
             .map_err(|_| RecvError::TypeMismatch)
+    }
+}
+
+pub struct Connection<Req: Reflectionable, Res: Reflectionable> {
+    tx: TypedTx<Req>,
+    rx: TypedRx<Res>,
+}
+
+impl<Req: Reflectionable, Res: Reflectionable> Connection<Req, Res> {
+    fn split(self) -> (TypedTx<Req>, TypedRx<Res>) {
+        (self.tx, self.rx)
+    }
+}
+
+// Listener ждет соединений
+pub struct Listener<Req: Reflectionable, Res: Reflectionable> {
+    uuid: Uuid,
+    // Канал через который клиенты сигналят о подключении
+    accept_rx: kanal::AsyncReceiver<Arc<dyn DynEndpoint>>,
+    _phantom: PhantomData<(Req, Res)>,
+}
+
+impl<Req: 'static + Reflectionable, Res: 'static + Reflectionable> Listener<Req, Res> {
+    pub async fn accept(&self) -> Result<Connection<Req, Res>, AcceptError> {
+        // Ждем соединение от клиента
+        let endpoint = self.accept_rx.recv().await?;
+
+        // Проверяем типы
+        let tx = TypedTx::new(endpoint.clone())?;
+        let rx = TypedRx::new(endpoint)?;
+
+        Ok(Connection { tx, rx })
     }
 }
 
@@ -100,3 +130,11 @@ pub enum RecvError {
 #[derive(Debug, Error)]
 #[error("Type mismatch during endpoint attachment")]
 pub struct TypeMismatchError;
+
+#[derive(Error, Debug)]
+pub enum AcceptError {
+    #[error("Type mismatch")]
+    TypeMismatch(#[from] TypeMismatchError),
+    #[error("Falied to recive")]
+    ReciveError(#[from] ReceiveError),
+}

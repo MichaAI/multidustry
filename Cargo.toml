@@ -5,6 +5,6 @@ members = [
     "proxy",
     "gameserver",
     "monolith",
-    "labs/quic", "labs/raft", "multidustry-transport", "multidustry-macro",
+    "labs/quic", "labs/raft", "multidustry-transport", "multidustry-macro", "multidustrycli", "multidustry-kv",
 ]
 resolver = "3"

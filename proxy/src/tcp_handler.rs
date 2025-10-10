@@ -9,7 +9,5 @@ pub async fn get_tcp_socket() -> &'static TcpListener {
 
 pub async fn handle_tcp() {
     let socket = get_tcp_socket().await;
-    loop {
-        let (socket, addr) = listener.accept().await.unwrap();
-    }
+    loop {}
 }

@@ -2,24 +2,24 @@ use std::marker::PhantomData;
 
 use uuid::Uuid;
 
-use crate::{Needed, TypedRx, TypedTx};
+use crate::{Reflectionable, TypedRx, TypedTx};
 
-pub struct TransportBuilder<Req: Needed, Res: Needed> {
+pub struct TransportBuilder<Req: Reflectionable, Res: Reflectionable> {
     _phantom: PhantomData<(Req, Res)>,
 }
 
-impl<Req: Needed, Res: Needed> TransportBuilder<Req, Res> {
+impl<Req: Reflectionable, Res: Reflectionable> TransportBuilder<Req, Res> {
     fn server(uuid: Uuid) -> TransportServerBuilder<Req, Res> {
         TransportServerBuilder::new(uuid)
     }
 }
 
-pub struct TransportServerBuilder<Req: Needed, Res: Needed> {
+pub struct TransportServerBuilder<Req: Reflectionable, Res: Reflectionable> {
     uuid: Uuid,
     _phantom: PhantomData<(Req, Res)>,
 }
 
-impl<Req: Needed, Res: Needed> TransportServerBuilder<Req, Res> {
+impl<Req: Reflectionable, Res: Reflectionable> TransportServerBuilder<Req, Res> {
     pub fn new(uuid: Uuid) -> TransportServerBuilder<Req, Res> {
         TransportServerBuilder {
             uuid: uuid,
