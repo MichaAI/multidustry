@@ -4,7 +4,7 @@ use std::time::Duration;
 use serde::{Deserialize, Serialize};
 use uuid::Uuid;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Foo {
     some: i32,
 }
@@ -15,7 +15,7 @@ impl Reflectionable for Foo {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, PartialEq, Debug)]
 struct Bar {
     some: i32,
 }
@@ -31,20 +31,32 @@ async fn inproc_test() {
     let uuid = Uuid::new_v4();
 
     let handle = tokio::spawn(async move {
-        let (tx, rx) = TransportBuilder::<Foo, Bar>::server(uuid.clone()).build();
-        let res = rx.recv().await.unwrap();
-        assert_eq!(res, Foo { some: 15 });
-        let _ = tx.send().await;
+        let listener = TransportBuilder::<Foo, Bar>::server(uuid).build();
+        let connection = listener.accept().await.unwrap();
+        let (tx, rx) = connection.split();
+
+        let req = rx.recv().await.unwrap();
+        assert_eq!(req, Foo { some: 15 });
+
+        tx.send(Bar { some: 18 }).await.unwrap();
     });
 
-    let (tx, rx) = TransportBuilder::<Foo, Bar>::client(uuid.clone())
+    tokio::time::sleep(Duration::from_millis(100)).await;
+
+    let connection = TransportBuilder::<Foo, Bar>::client(uuid)
         .with_timeout(Duration::from_secs(5))
         .with_retry(3)
         .error_strategy(ErrorStrategy::Drop)
         .guarantees(Guarantees::Reliable)
-        .build();
-    let _ = tx.send(Foo { some: 15 }).await;
+        .build()
+        .await
+        .unwrap();
+
+    let (tx, rx) = connection.split();
+
+    tx.send(Foo { some: 15 }).await.unwrap();
     let result = rx.recv().await.unwrap();
     assert_eq!(result, Bar { some: 18 });
+
     handle.await.unwrap();
 }
