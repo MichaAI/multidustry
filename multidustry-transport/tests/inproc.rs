@@ -1,4 +1,4 @@
-use multidustry_transport::Reflectionable;
+use multidustry_transport::{Reflectionable, transport_builder::TransportBuilder};
 use std::time::Duration;
 
 use serde::{Deserialize, Serialize};
@@ -31,7 +31,7 @@ async fn inproc_test() {
     let uuid = Uuid::new_v4();
 
     let handle = tokio::spawn(async move {
-        let listener = TransportBuilder::<Foo, Bar>::server(uuid).build();
+        let listener = TransportBuilder::<Foo, Bar>::server(uuid).build().await;
         let connection = listener.accept().await.unwrap();
         let (tx, rx) = connection.split();
 
@@ -44,10 +44,10 @@ async fn inproc_test() {
     tokio::time::sleep(Duration::from_millis(100)).await;
 
     let connection = TransportBuilder::<Foo, Bar>::client(uuid)
-        .with_timeout(Duration::from_secs(5))
-        .with_retry(3)
-        .error_strategy(ErrorStrategy::Drop)
-        .guarantees(Guarantees::Reliable)
+        // .with_timeout(Duration::from_secs(5))
+        // .with_retry(3)
+        // .error_strategy(ErrorStrategy::Drop)
+        // .guarantees(Guarantees::Reliable)
         .build()
         .await
         .unwrap();
