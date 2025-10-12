@@ -23,7 +23,7 @@ pub trait Reflectionable: Send + Sync + Serialize + DeserializeOwned {
 
 // Для type erasure - endpoint который можем хранить в Any
 #[async_trait]
-trait DynEndpoint: Send + Sync {
+pub trait DynEndpoint: Send + Sync {
     async fn send_boxed(&self, msg: Box<dyn Any + Send>) -> Result<(), SendError>;
     async fn recv_boxed(&self) -> Result<Box<dyn Any + Send>, RecvError>;
 }
@@ -147,8 +147,4 @@ pub enum RecvError {
     DeserializationError,
     #[error("Failed to recive frame")]
     RecvFrameError(#[from] RecvFrameError),
-}
-
-async fn route_incoming_bi(send: &mut _, recv: &mut _) -> _ {
-    todo!()
 }
