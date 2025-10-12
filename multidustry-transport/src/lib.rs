@@ -9,10 +9,15 @@ use std::sync::Arc;
 use thiserror::Error;
 use uuid::Uuid;
 
+use crate::net::{QuicEndpoint, RecvFrameError};
+
+pub mod error_strategy;
+pub mod guarantees;
 pub mod inproc;
+pub mod net;
 pub mod transport_builder;
 
-pub trait Reflectionable: Send + Serialize + DeserializeOwned {
+pub trait Reflectionable: Send + Sync + Serialize + DeserializeOwned {
     fn stable_type_hash() -> &'static str;
 }
 
@@ -24,9 +29,18 @@ trait DynEndpoint: Send + Sync {
 }
 
 // Handle который передаём через registry
+
 struct ListenerHandle {
-    // Просто отправляем Arc<dyn DynEndpoint> в listener
-    accept_tx: kanal::AsyncSender<Arc<dyn DynEndpoint>>,
+    accept_tx: kanal::AsyncSender<IncomingEndpoint>, // Было Arc<dyn DynEndpoint>
+}
+
+// Enum для разных типов incoming connections
+pub enum IncomingEndpoint {
+    Inproc(Arc<dyn DynEndpoint>),
+    Quic {
+        send: quinn::SendStream,
+        recv: quinn::RecvStream,
+    },
 }
 
 // Локальный registry
@@ -37,7 +51,6 @@ fn get_local_registry() -> &'static DashMap<(Uuid, &'static str, &'static str), 
     LOCAL_REGISTRY.get_or_init(|| DashMap::new())
 }
 
-// Connection - это то что получает пользователь
 pub struct Connection<Req: Reflectionable, Res: Reflectionable> {
     endpoint: Arc<dyn DynEndpoint>,
     _phantom: PhantomData<(Req, Res)>,
@@ -84,19 +97,26 @@ impl<Res: 'static + Reflectionable> TypedRx<Res> {
     }
 }
 
-// Listener - ждёт подключений
 pub struct Listener<Req: Reflectionable, Res: Reflectionable> {
-    accept_rx: kanal::AsyncReceiver<Arc<dyn DynEndpoint>>,
+    accept_rx: kanal::AsyncReceiver<IncomingEndpoint>, // Было Arc<dyn DynEndpoint>
     _phantom: PhantomData<(Req, Res)>,
 }
 
 impl<Req: 'static + Reflectionable, Res: 'static + Reflectionable> Listener<Req, Res> {
     pub async fn accept(&self) -> Result<Connection<Res, Req>, RecvError> {
-        let endpoint = self
+        let incoming = self
             .accept_rx
             .recv()
             .await
             .map_err(|_| RecvError::ChannelClosed)?;
+
+        let endpoint: Arc<dyn DynEndpoint> = match incoming {
+            IncomingEndpoint::Inproc(ep) => ep,
+            IncomingEndpoint::Quic { send, recv } => {
+                // Создаём QuicEndpoint с ПЕРЕВЁРНУТЫМИ типами (как было с inproc!)
+                Arc::new(QuicEndpoint::<Res, Req>::new(send, recv))
+            }
+        };
 
         Ok(Connection {
             endpoint,
@@ -111,6 +131,10 @@ pub enum SendError {
     ChannelClosed,
     #[error("Type mismatch")]
     TypeMismatch,
+    #[error("IO Error")]
+    IOError(#[from] std::io::Error),
+    #[error("Failed to serialize")]
+    SerializationError,
 }
 
 #[derive(Debug, Error)]
@@ -119,4 +143,12 @@ pub enum RecvError {
     ChannelClosed,
     #[error("Type mismatch")]
     TypeMismatch,
+    #[error("Failed to deserialize")]
+    DeserializationError,
+    #[error("Failed to recive frame")]
+    RecvFrameError(#[from] RecvFrameError),
+}
+
+async fn route_incoming_bi(send: &mut _, recv: &mut _) -> _ {
+    todo!()
 }
