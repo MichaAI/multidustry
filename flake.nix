@@ -1,5 +1,5 @@
 {
-  description = "My sexy Rust project";
+  description = "Alternative Mindustry server implementation focused on horizontal scalability and plugin ecosystem";
 
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
@@ -32,11 +32,11 @@
         };
 
         packages.multidustrycli = pkgs.rustPlatform.buildRustPackage {
-          pname = "multidustrycli";
+          pname = "muductl";
           version = "0.0.1";
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
-          cargoBuildFlags = [ "-p" "multidustrycli" ];
+          cargoBuildFlags = [ "-p" "muductl" ];
         };
       }
     );
