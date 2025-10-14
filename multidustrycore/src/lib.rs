@@ -1,2 +1,2 @@
+pub mod api;
 pub mod observ;
-pub mod registry;

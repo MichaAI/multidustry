@@ -1,20 +1,24 @@
-use multidustrycore::{
-    registry::{Component, ComponentType},
-    *,
-};
 use std::time::Duration;
 
+pub mod api;
+
+use rocket::{get, routes};
+
 pub async fn apiserver_main() {
-    let (tx, rx) = tokio::sync::mpsc::channel(64);
-    let _ = registry::register_service(
-        Component {
-            component_type: ComponentType::Apiserver,
-            component_name: uuid::Uuid::new_v4().to_string(),
-        },
-        tx,
-    );
+    tokio::spawn(async {
+        rocket::build()
+            .mount("/", routes![ping, api::v1::get::worlds::get_worlds])
+            .launch()
+            .await
+    });
+
     println!("Apiserver started");
-    loop {
-        tokio::time::sleep(Duration::from_secs(30)).await;
-    }
+    let _ = tokio::signal::ctrl_c().await;
+    tokio::time::sleep(Duration::from_secs(3)).await;
+    println!("Apiserver exited");
+}
+
+#[get("/ping")]
+async fn ping() -> &'static str {
+    "pong"
 }

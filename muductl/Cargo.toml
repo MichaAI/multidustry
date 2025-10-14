@@ -1,0 +1,17 @@
+[package]
+name = "muductl"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+multidustrycore = { path = "../multidustrycore" }
+clap = { version = "4.5.48", features = ["derive"] }
+reqwest = { version = "0.12.23", features = ["json"] }
+tokio = { version = "1.47.1", features = ["full"] }
+anyhow = "1.0.100"
+thiserror = "2.0.17"
+tabled = "0.20.0"
+home = "0.5.11"
+toml = "0.9.8"
+serde = "1.0.228"
+url = "2.5.7"

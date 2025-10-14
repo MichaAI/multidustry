@@ -19,3 +19,9 @@ tracing-opentelemetry = "0.31.0"
 tracing-subscriber = { version = "0.3.20", features = ["env-filter"] }
 pyroscope = "0.5.8"
 pyroscope_pprofrs = "0.2.10"
+tabled = { version = "0.20.0", features = ["derive"] }
+bon = "3.8.1"
+colored = "3.0.0"
+fake = "4.4.0"
+rand = "0.9.2"
+chrono = "0.4.42"
