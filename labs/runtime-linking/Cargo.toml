@@ -1,0 +1,7 @@
+[package]
+name = "runtime-linking"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+wasmparser = "0.240.0"

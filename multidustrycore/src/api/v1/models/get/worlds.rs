@@ -64,10 +64,10 @@ pub enum WorldStatus {
 impl Display for WorldStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::Running => write!(f, " Running"),
-            Self::Migrating => write!(f, "󰑓 Migrating"),
-            Self::Stopped => write!(f, " Stopped"),
-            Self::Failed => write!(f, " Failed"),
+            Self::Running => write!(f, "{}", " Running".green()),
+            Self::Migrating => write!(f, "{}", "󰑓 Migrating".cyan()),
+            Self::Stopped => write!(f, "{}", " Stopped".dimmed()),
+            Self::Failed => write!(f, "{}", " Failed".red()),
         }
     }
 }
