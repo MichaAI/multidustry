@@ -5,7 +5,7 @@ use cesu8::to_java_cesu8;
 #[brw(big)]
 #[derive(Debug, Clone)]
 pub struct TypeIOString {
-    pub exists: u8,
+    exists: u8,
 
     #[br(if(exists != 0))]
     #[bw(if(*exists != 0))]
@@ -25,7 +25,7 @@ fn parce_cesu8_optional(exists: u8) -> BinResult<Option<String>> {
     if len != str_len {
         return Err(binrw::Error::Custom {
             pos: 0,
-            err: Box::new(0),
+            err: Box::new("Len are not equal"),
         });
     }
     return Ok(Some(
@@ -43,7 +43,6 @@ fn write_cesu8(text: &Option<String>, exists: &u8) -> BinResult<()> {
     if *exists == 0 {
         return Ok(());
     }
-
     match text {
         Some(text) => {
             if text.len() > u16::MAX.into() {
@@ -59,6 +58,16 @@ fn write_cesu8(text: &Option<String>, exists: &u8) -> BinResult<()> {
         None => {
             0u16.write_be(writer)?;
             return Ok(());
+        }
+    }
+}
+
+impl TypeIOString {
+    pub fn new(text: String) -> Self {
+        let text: String = text.chars().take(u16::MAX as usize).collect();
+        TypeIOString {
+            exists: 1,
+            value: Some(text),
         }
     }
 }

@@ -1,7 +1,12 @@
+use std::io::Cursor;
+
+use binrw::BinWrite;
 use bytes::Buf;
 use bytes::{BufMut, Bytes, BytesMut};
 use kanal::*;
 use tokio::{self, net::UdpSocket, sync::OnceCell};
+
+use crate::protocol::ping_resp::DiscoveryResponce;
 
 #[derive(Debug)]
 pub struct UdpPacket {
@@ -65,48 +70,22 @@ async fn process_udp_packet(packet: UdpPacket) {
     }
     let first_byte = data.get_i8();
     if first_byte == -2 {
-        let mut buf = BytesMut::new();
-        let response = constuct_discovery_responce(&mut buf);
-        if let Err(e) = socket.send_to(&response[..], packet.addr).await {
-            eprintln!("Ошибка отправки UDP: {e}");
-        }
+        let resp = DiscoveryResponce::builder()
+            .server_name("Neodustry".into())
+            .map_name("HUB".into())
+            .total_players(0)
+            .wave(0)
+            .version_type("multidustry".into())
+            .gamemode(0)
+            .description("Multidustry - best mindustry server impl".into())
+            .custom_gamemode("HUB".into())
+            .build();
+
+        let mut output = Cursor::new(Vec::new());
+        resp.write(&mut output).unwrap();
+        socket
+            .send_to(&output.into_inner(), packet.addr)
+            .await
+            .unwrap();
     };
-}
-
-fn constuct_discovery_responce(buf: &mut BytesMut) -> Bytes {
-    write_string(buf, "Neodustry", 100); // Server name
-    write_string(buf, "HUB", 100); // Map name
-    buf.put_i32(0); // Total players
-    buf.put_i32(0); // Wave
-    buf.put_i32(-1); // Version number
-    write_string(buf, "multidustry", 64); // Version type
-    buf.put_i8(1); // Gamemode
-    buf.put_i32(255); // Player limit
-    write_string(buf, "Test multidustry desc", 100); // Description
-    write_string(buf, "HUB", 64); // Custom gamemode
-    buf.put_i16(6567); // Server port
-
-    buf.clone().freeze()
-}
-
-pub fn write_string(buf: &mut BytesMut, s: &str, max_length: usize) {
-    // UTF-8 байты строки
-    let bytes = s.as_bytes();
-
-    // Обрезаем по лимиту байтов
-    let trimmed_len = bytes.len().min(max_length);
-
-    // ВАЖНО: длина в одном байте (u8), как в оригинале
-    // Если trimmed_len > 255, по протоколу длина уходит в один байт,
-    // значит надо дополнительно ограничить 255.
-    let len_u8 = trimmed_len.min(u8::MAX as usize) as u8;
-
-    // Резервируем место: 1 байт под длину + сами данные
-    buf.reserve(1 + len_u8 as usize);
-
-    // Пишем длину (1 байт)
-    buf.put_u8(len_u8);
-
-    // Пишем байты
-    buf.put_slice(&bytes[..len_u8 as usize]);
 }
