@@ -1,4 +1,5 @@
-use clap::{Parser, Subcommand};
+use clap::{CommandFactory, Parser, Subcommand};
+use clap_complete::generate;
 use tokio::{fs::File, io::AsyncReadExt};
 
 use crate::{
@@ -43,6 +44,11 @@ async fn main() -> anyhow::Result<()> {
                 get::worlds::get_worlds(&config).await;
             }
         },
+        Subcommands::Completions { shell } => {
+            let mut cmd = Cli::command();
+            eprintln!("Generating completions for {}", &shell);
+            generate(*shell, &mut cmd, "muductl", &mut std::io::stdout());
+        }
     }
 
     Ok(())

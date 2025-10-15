@@ -1,4 +1,5 @@
 use clap::{Parser, Subcommand};
+use clap_complete::Shell;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -20,6 +21,10 @@ pub enum Subcommands {
     Get {
         #[command(subcommand)]
         command: GetSubcommand,
+    },
+    Completions {
+        #[arg(value_enum)]
+        shell: Shell,
     },
 }
 

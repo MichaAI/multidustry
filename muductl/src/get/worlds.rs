@@ -14,9 +14,10 @@ pub async fn get_worlds(config: &Config) {
     for apiserver_url in &apiserver_urls.apiserver_urls {
         let result = try_get_and_print_data(&apiserver_url).await;
         if let Ok(_) = result {
-            break;
+            return;
         }
     }
+    println!("Failed to get data from any gameserver; Please check your network connection")
 }
 
 async fn try_get_and_print_data(url_str: &str) -> Result<()> {
