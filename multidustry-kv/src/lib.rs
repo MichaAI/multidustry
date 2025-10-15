@@ -1,8 +1,9 @@
-use std::path::PathBuf;
+use std::{path::PathBuf, sync::Arc};
 
 use anyhow::Result;
 use async_trait::async_trait;
 use reqwest::Client;
+use tokio::sync::OnceCell;
 use tracing::{info, warn};
 use url::Url;
 
@@ -20,6 +21,13 @@ pub trait KvStore: Send + Sync {
 }
 
 pub struct KvStorage;
+
+pub static STORAGE_INSTANCE: OnceCell<Arc<Box<dyn KvStore>>> = OnceCell::const_new();
+pub async fn get_storage_instance() -> &'static Arc<Box<dyn KvStore>> {
+    STORAGE_INSTANCE
+        .get_or_init(async || Arc::new(KvStorage::new().unwrap()))
+        .await
+}
 
 impl KvStorage {
     fn new() -> Result<Box<dyn KvStore>> {

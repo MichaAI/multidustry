@@ -31,12 +31,15 @@
           RUST_SRC_PATH = "${rustToolchain}/lib/rustlib/src/rust/library";
         };
 
-        packages.multidustrycli = pkgs.rustPlatform.buildRustPackage {
+        packages.muductl = pkgs.rustPlatform.buildRustPackage {
           pname = "muductl";
           version = "0.0.1";
           src = ./.;
           cargoLock.lockFile = ./Cargo.lock;
           cargoBuildFlags = [ "-p" "muductl" ];
+
+          nativeBuildInputs = with pkgs; [ pkg-config ];
+          buildInputs = with pkgs; [ openssl ];
         };
       }
     );

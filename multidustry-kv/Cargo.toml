@@ -6,7 +6,9 @@ edition = "2024"
 [dependencies]
 anyhow = "1.0.100"
 async-trait = "0.1.89"
+dashmap = "6.1.0"
 reqwest = { version = "0.12.23", features = ["json"] }
 sled = "0.34.7"
+tokio = { version = "1.48.0", features = ["full"] }
 tracing = "0.1.41"
 url = "2.5.7"
