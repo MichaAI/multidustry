@@ -1,4 +1,3 @@
-use fake::{Fake, rand};
 use multidustrycore::api::v1::models::get::worlds::{World, WorldsRes};
 use rocket::{get, serde::json::Json};
 use tracing::info;

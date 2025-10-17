@@ -5,6 +5,7 @@ edition = "2024"
 
 [dependencies]
 multidustrycore = { path = "../multidustrycore" }
+multidustry-kv = {path = "../multidustry-kv"}
 tokio = { version = "1.47.1", features = ["full"] }
 num_cpus = "1.16"
 bytes = "1.10"
@@ -17,3 +18,4 @@ kanal = "0.1.1"
 cesu8 = "1.1.0"
 binrw = "0.15.0"
 bon = "3.8.1"
+tracing = "0.1.41"

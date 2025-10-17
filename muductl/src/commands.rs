@@ -26,9 +26,18 @@ pub enum Subcommands {
         #[arg(value_enum)]
         shell: Shell,
     },
+    Kv {
+        #[command(subcommand)]
+        command: KvSubcommand,
+    },
 }
 
 #[derive(Subcommand)]
 pub enum GetSubcommand {
     Worlds,
+}
+
+#[derive(Subcommand)]
+pub enum KvSubcommand {
+    Set { key: String, value: String },
 }

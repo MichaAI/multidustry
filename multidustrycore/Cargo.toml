@@ -4,6 +4,7 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+multidustry-kv = {path = "../multidustry-kv"}
 dashmap = "6.1.0"
 tokio = { version = "1.47.1", features = ["full"] }
 serde = { version = "1.0", features = ["derive"] }

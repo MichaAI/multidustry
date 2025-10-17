@@ -10,6 +10,8 @@ use crate::{
 pub mod commands;
 pub mod config_model;
 pub mod get;
+pub mod kv;
+pub mod utils;
 
 #[tokio::main]
 async fn main() -> anyhow::Result<()> {
@@ -49,6 +51,11 @@ async fn main() -> anyhow::Result<()> {
             eprintln!("Generating completions for {}", &shell);
             generate(*shell, &mut cmd, "muductl", &mut std::io::stdout());
         }
+        Subcommands::Kv { command } => match command {
+            commands::KvSubcommand::Set { key, value } => {
+                kv::set::set(&config, key, value).await.expect("Fail")
+            }
+        },
     }
 
     Ok(())

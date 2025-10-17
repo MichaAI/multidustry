@@ -7,7 +7,14 @@ use rocket::{get, routes};
 pub async fn apiserver_main() {
     tokio::spawn(async {
         rocket::build()
-            .mount("/", routes![ping, api::v1::get::worlds::get_worlds])
+            .mount(
+                "/",
+                routes![
+                    ping,
+                    api::v1::get::worlds::get_worlds,
+                    api::v1::kv::set::set
+                ],
+            )
             .launch()
             .await
     });

@@ -101,7 +101,7 @@ impl KvStore for ConsulKvStore {
     async fn get(&self, key: &str) -> Result<Option<Vec<u8>>> {
         if let Some(cache_entry) = self.cache.get(key) {
             let res = cache_entry.value();
-            return Ok(Some(res.data));
+            return Ok(Some(res.data.clone()));
         }
 
         let url = format!("{}/{}", self.base_url, key);
@@ -137,7 +137,8 @@ impl KvStore for ConsulKvStore {
             .body(value)
             .send()
             .await?
-            .error_for_status()?;
+            .error_for_status()
+            .unwrap();
 
         Ok(())
     }

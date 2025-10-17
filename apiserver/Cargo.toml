@@ -4,10 +4,12 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-fake = "4.4.0"
 multidustrycore = {path = "../multidustrycore"}
+multidustry-kv = {path = "../multidustry-kv"}
 rocket = { version = "0.5.1", features = ["json"] }
 tokio = { version = "1.47.1", features = ["full"] }
 tracing = "0.1.41"
 uuid = { version = "1.18.0", features = ["v4"] }
+anyhow = "1.0.100"
+thiserror = "2.0.17"
 

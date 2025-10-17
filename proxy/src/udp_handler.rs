@@ -4,7 +4,10 @@ use binrw::BinWrite;
 use bytes::Buf;
 use bytes::{BufMut, Bytes, BytesMut};
 use kanal::*;
+use multidustry_kv::get_storage_instance;
+use multidustrycore::kv::{self, get_string_from_db};
 use tokio::{self, net::UdpSocket, sync::OnceCell};
+use tracing::{debug, info};
 
 use crate::protocol::ping_resp::DiscoveryResponce;
 
@@ -70,15 +73,31 @@ async fn process_udp_packet(packet: UdpPacket) {
     }
     let first_byte = data.get_i8();
     if first_byte == -2 {
+        let db = get_storage_instance().await;
+        let custom_gamemode = get_string_from_db(db, "config/custom_gamemode").await;
+        info!("Custom gamemode: {}", custom_gamemode);
         let resp = DiscoveryResponce::builder()
-            .server_name("Neodustry".into())
-            .map_name("HUB".into())
-            .total_players(0)
+            .server_name(get_string_from_db(db, "config/server_name").await.into())
+            .map_name(
+                get_string_from_db(db, "config/default_world_map_name")
+                    .await
+                    .into(),
+            )
+            .total_players(
+                get_string_from_db(db, "stats/total_players")
+                    .await
+                    .parse()
+                    .unwrap_or_default(),
+            )
             .wave(0)
-            .version_type("multidustry".into())
+            .version_type(get_string_from_db(db, "config/version_type").await.into())
             .gamemode(0)
-            .description("Multidustry - best mindustry server impl".into())
-            .custom_gamemode("HUB".into())
+            .description(get_string_from_db(db, "config/description").await.into())
+            .custom_gamemode(
+                get_string_from_db(db, "config/custom_gamemode")
+                    .await
+                    .into(),
+            )
             .build();
 
         let mut output = Cursor::new(Vec::new());

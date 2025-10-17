@@ -6,22 +6,14 @@ use tabled::{
 };
 use url::Url;
 
-use crate::config_model::Config;
+use crate::{config_model::Config, utils::find_healthy_apiserver};
 
 pub async fn get_worlds(config: &Config) {
-    let server = &config.context.current;
-    let apiserver_urls = config.servers.get(server).expect("Failed to get context");
-    for apiserver_url in &apiserver_urls.apiserver_urls {
-        let result = try_get_and_print_data(&apiserver_url).await;
-        if let Ok(_) = result {
-            return;
-        }
-    }
-    println!("Failed to get data from any gameserver; Please check your network connection")
+    let url = find_healthy_apiserver(&config).await;
+    let _ = try_get_and_print_data(url).await;
 }
 
-async fn try_get_and_print_data(url_str: &str) -> Result<()> {
-    let mut url = Url::parse(url_str).expect("Failed to parce url");
+async fn try_get_and_print_data(mut url: Url) -> Result<()> {
     url.set_path("v1/get/worlds");
     url.set_query(Some("fake=true"));
 

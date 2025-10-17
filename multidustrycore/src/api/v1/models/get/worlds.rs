@@ -5,9 +5,6 @@ use std::fmt::Display;
 use tabled::Tabled;
 
 #[derive(Serialize, Deserialize)]
-pub struct WorldsReq {}
-
-#[derive(Serialize, Deserialize)]
 pub struct WorldsRes {
     pub worlds: Vec<World>,
 }
@@ -64,10 +61,10 @@ pub enum WorldStatus {
 impl Display for WorldStatus {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         match self {
-            Self::Running => write!(f, "{}", " Running".green()),
-            Self::Migrating => write!(f, "{}", "󰑓 Migrating".cyan()),
-            Self::Stopped => write!(f, "{}", " Stopped".dimmed()),
-            Self::Failed => write!(f, "{}", " Failed".red()),
+            Self::Running => write!(f, "{}", " Run".green()),
+            Self::Migrating => write!(f, "{}", "󰑓 Mig".cyan()),
+            Self::Stopped => write!(f, "{}", " Stop".dimmed()),
+            Self::Failed => write!(f, "{}", " Fail".red()),
         }
     }
 }
